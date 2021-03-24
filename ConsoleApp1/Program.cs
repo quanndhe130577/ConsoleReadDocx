@@ -70,6 +70,8 @@ namespace ConsoleApp1
 
         }
 
+        static string font = "";
+
         public static void ScanFolder(string fullPath)
         {
             Console.WriteLine("=================");
@@ -79,6 +81,8 @@ namespace ConsoleApp1
 
             int total_file = Files.Length;
             int fix_file_number = 0;
+            Console.Write("Input your font : ");
+            font = Console.ReadLine();
 
             foreach (FileInfo file in Files)
             {
@@ -87,6 +91,7 @@ namespace ConsoleApp1
                     Console.WriteLine(file.Name);
                     //RemoveWordInDocx(file, "quảng cáo");
                     AddHeaderFooter(file);
+                    ChangeFontFile(file);
                     fix_file_number += 1;
                 }
                 catch (Exception ex)
@@ -102,9 +107,10 @@ namespace ConsoleApp1
 
             // đệ quy
             String[] subfolder = Directory.GetDirectories(fullPath);
-            foreach(var item in subfolder)
+            foreach (var item in subfolder)
             {
-                try { 
+                try
+                {
                     ScanFolder(item);
                 }
                 catch
@@ -114,6 +120,8 @@ namespace ConsoleApp1
             }
         }
 
+
+        // thay chữ 'bài' thành chữ 'câu'
         public static void ReadDocxWithSpire(FileInfo file)
         {
             //Load Document
@@ -137,6 +145,7 @@ namespace ConsoleApp1
 
         }
 
+        // xóa 1 cụm từ 
         public static void RemoveWordInDocx(FileInfo file, string word)
         {
             Document document = new Document();
@@ -149,7 +158,7 @@ namespace ConsoleApp1
             {
                 Paragraph para = section.Paragraphs[i];
                 string oldString = para.Text;
-                int start = oldString.ToLower().IndexOf(word);
+                int start = oldString.ToLower().IndexOf(word.Trim().ToLower());
 
                 if (start == -1)
                 {
@@ -222,6 +231,41 @@ namespace ConsoleApp1
             section.PageSetup.FooterDistance = 0;
 
             doc.SaveToFile(file.FullName, FileFormat.Docx);
+        }
+
+        public static void ChangeFontFile(FileInfo file)
+        {
+
+            //Load Document
+            Document document = new Document();
+            document.LoadFromFile(file.FullName);
+
+
+            foreach (Section section in document.Sections)
+
+            {
+
+                foreach (Paragraph paragraph in section.Paragraphs)
+
+                {
+                    //Set Font Style and Size
+
+                    ParagraphStyle style = new ParagraphStyle(document);
+
+                    //style.Name = "FontStyle";
+
+                    style.CharacterFormat.FontName = String.IsNullOrEmpty(font) ? "Calibri" : font;
+
+                    document.Styles.Add(style);
+
+                    paragraph.ApplyStyle(style.Name);
+
+                }
+
+            }
+
+            document.SaveToFile(file.FullName, FileFormat.Docx);
+
         }
 
     }
